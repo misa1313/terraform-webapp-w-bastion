@@ -35,7 +35,7 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
-
+*.terraform.lock.hcl
 #Terraform files in the state-bucket dir.
 state-bucket/.terraform
 state-bucket/.terraform.lock.hcl
