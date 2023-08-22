@@ -164,4 +164,3 @@ resource "aws_security_group" "security-group-nat" {
     Name = "allow_ssh_httpdlb"
   }
 }
-

@@ -79,7 +79,3 @@ resource "aws_route53_record" "load-balancer-record" {
   ttl     = 300
   records = [aws_lb.load-balancer-lb.dns_name]
 }
-
-
-
-

@@ -53,3 +53,48 @@ resource "aws_iam_role_policy_attachment" "webserver_policy_attachment" {
   policy_arn = aws_iam_policy.s3_session_manager_policy.arn
   role       = aws_iam_role.webserver_role.name
 }
+
+
+##########################################################################
+# IAM profile for Cloudwatch 
+##########################################################################
+
+data "aws_iam_policy_document" "cw-assume-role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["vpc-flow-logs.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "cw-iam-role" {
+  name               = "cw-iam-role"
+  assume_role_policy = data.aws_iam_policy_document.cw-assume-role.json
+}
+
+data "aws_iam_policy_document" "cw-iam-policy-document" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+      "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams",
+    ]
+
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role_policy" "cw-iam-role-policy" {
+  name   = "cw-iam-role-policy"
+  role   = aws_iam_role.cw-iam-role.id
+  policy = data.aws_iam_policy_document.cw-iam-policy-document.json
+}

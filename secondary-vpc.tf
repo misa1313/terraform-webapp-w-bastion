@@ -74,4 +74,3 @@ resource "aws_route_table_association" "secondary-association" {
   subnet_id      = aws_subnet.secondary-subnet.id
   route_table_id = aws_route_table.secondary-route-table.id
 }
-
