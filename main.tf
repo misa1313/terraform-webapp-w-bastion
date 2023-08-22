@@ -16,7 +16,7 @@ resource "aws_launch_template" "launch_template" {
   instance_type             = "t2.micro"
   key_name                  = "k-priv"
   vpc_security_group_ids    = [aws_security_group.security-group-nat.id]
-  user_data                 = "${file("setup.sh")}"
+  user_data                 = filebase64("./setup.sh")
   iam_instance_profile {
     name = aws_iam_instance_profile.apache-main-profile.name
   }
@@ -35,7 +35,9 @@ resource "aws_launch_template" "launch_template" {
 }
 
 resource "aws_autoscaling_group" "autoscaling_group" {
-  launch_template           = aws_launch_template.launch_template.name
+  launch_template {
+    id      = aws_launch_template.launch_template.id
+  }
   min_size                  = 2
   max_size                  = 4
   health_check_grace_period = 300
@@ -46,7 +48,6 @@ resource "aws_autoscaling_group" "autoscaling_group" {
 resource "aws_autoscaling_policy" "scale-policy" {
   name                   = "scale-policy"
   adjustment_type        = "ChangeInCapacity"
-  scaling_adjustment     = 1
   policy_type            = "TargetTrackingScaling"
   autoscaling_group_name = aws_autoscaling_group.autoscaling_group.name
 
