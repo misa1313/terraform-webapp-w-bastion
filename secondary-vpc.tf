@@ -1,9 +1,13 @@
+variable "secondary_vpc_block" {}
+variable "secondary_subnet_block" {}
+variable "avail_zone3" {}
+
 ##########################################################################
 # SECONDARY VPC - Subnets - SG - IGW - RT
 ##########################################################################
 
 resource "aws_vpc" "secondary-vpc" {
-  cidr_block       = "172.16.0.0/16"
+  cidr_block       = var.secondary_vpc_block
   instance_tenancy = "default"
   enable_dns_hostnames = "true"
   tags = {
@@ -13,8 +17,8 @@ resource "aws_vpc" "secondary-vpc" {
 
 resource "aws_subnet" "secondary-subnet" {
   vpc_id            = aws_vpc.secondary-vpc.id
-  cidr_block        = "172.16.2.0/24"
-  availability_zone = "us-east-2c"
+  cidr_block        = var.secondary_subnet_block
+  availability_zone = var.avail_zone3
   map_public_ip_on_launch = true
 
   tags = {

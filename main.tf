@@ -7,7 +7,7 @@ variable "access" {
 }
 
 ##########################################################################
-# Instances for the primary VPC - Autoscaling by CPU utilization
+# Instances for primary VPC - Autoscaling - EC2 AMI backups
 ##########################################################################
 
 resource "aws_launch_template" "launch_template" {
@@ -30,6 +30,7 @@ resource "aws_launch_template" "launch_template" {
     resource_type = "instance"
     tags = {
       environment = "dev"
+      "backup" = "execute"
     }
   }
 }
@@ -57,6 +58,19 @@ resource "aws_autoscaling_policy" "scale-policy" {
       predefined_metric_type = "ASGAverageCPUUtilization"   
     }
   }
+}
+
+module "backup" {
+  source  = "DNXLabs/backup/aws"
+  version = "3.0.0"
+  name = "ami-backups"
+  enable_aws_backup_vault_notifications = true
+  max_retention_days = 30
+  min_retention_days = 2
+  rule_schedule = "0 5 * * 1"
+  selection_tag_key = "backup"
+  selection_tag_value = "execute"
+  vault_notification_sns_topic_arn = aws_sns_topic.alarm.arn
 }
 
 

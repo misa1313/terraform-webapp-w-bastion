@@ -8,7 +8,7 @@ resource "aws_security_group" "load-balancer-sg" {
   vpc_id      = aws_vpc.primary-vpc.id
 
   ingress {
-    description      = "HTTP from VPC"
+    description      = "HTTP from LB"
     from_port        = 80
     to_port          = 80
     protocol         = "tcp"
@@ -39,6 +39,9 @@ resource "aws_security_group" "load-balancer-sg" {
 # Load balancer - Target group - AWS route53
 ##########################################################################
 
+variable "domain" {}
+variable "subdomain" {}
+
 resource "aws_lb" "load-balancer-lb" {
   name               = "load-balancer-lb"
   internal           = false
@@ -68,14 +71,31 @@ resource "aws_lb_target_group" "target-group" {
 }
 
 resource "aws_route53_zone" "load-balancer-zone" {
-  name    = "kinntel.com"
-  comment = "Zone for kinntel.com"
+  name    = var.domain
+  comment = "Zone for ${var.domain}"
 }
 
 resource "aws_route53_record" "load-balancer-record" {
   zone_id = aws_route53_zone.load-balancer-zone.zone_id
-  name    = "aws.kinntel.com"
+  name    = var.subdomain
   type    = "CNAME"
   ttl     = 300
   records = [aws_lb.load-balancer-lb.dns_name]
+}
+
+
+##########################################################################
+# SNS for backup vault
+##########################################################################
+
+variable "main_email" {}
+
+resource "aws_sns_topic" "alarm" {
+  name  = "alarm-topic"
+}
+
+resource "aws_sns_topic_subscription" "alarm-ubscription" {
+  topic_arn = aws_sns_topic.alarm.arn
+  protocol  = "email"
+  endpoint  = var.main_email
 }

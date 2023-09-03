@@ -38,7 +38,7 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "secondary-vpc-attachment" {
 
 resource "aws_route" "tgw-route-1" {
   route_table_id         = aws_route_table.public-route-table.id
-  destination_cidr_block = "172.16.0.0/16"
+  destination_cidr_block = var.secondary_vpc_block
   transit_gateway_id     = aws_ec2_transit_gateway.transit-gtw.id
   depends_on = [
     aws_ec2_transit_gateway.transit-gtw
@@ -47,7 +47,7 @@ resource "aws_route" "tgw-route-1" {
 
 resource "aws_route" "tgw-route-2" {
   route_table_id         = aws_route_table.private-route-table.id
-  destination_cidr_block = "172.16.0.0/16"
+  destination_cidr_block = var.secondary_vpc_block
   transit_gateway_id     = aws_ec2_transit_gateway.transit-gtw.id
   depends_on = [
     aws_ec2_transit_gateway.transit-gtw
@@ -57,7 +57,7 @@ resource "aws_route" "tgw-route-2" {
 resource "aws_route" "tgw-route-3" {
   
   route_table_id         = aws_route_table.secondary-route-table.id
-  destination_cidr_block = "172.32.0.0/16"
+  destination_cidr_block = var.primary_vpc_block
   transit_gateway_id     = aws_ec2_transit_gateway.transit-gtw.id
   depends_on = [
     aws_ec2_transit_gateway.transit-gtw

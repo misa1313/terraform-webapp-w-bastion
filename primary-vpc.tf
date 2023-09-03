@@ -1,9 +1,17 @@
+variable "primary_vpc_block" {}
+variable "private_subnet_block" {}
+variable "public_subnet_block" {}
+variable "public_subnet_nlb_block" {}
+variable "public_subnet_nlb2_block" {}
+variable "avail_zone1" {}
+variable "avail_zone2" {}
+
 ##########################################################################
 # MAIN VPC - Subnets - SG - IGW - RT
 ##########################################################################
 
 resource "aws_vpc" "primary-vpc" {
-  cidr_block       = "172.32.0.0/16"
+  cidr_block       = var.primary_vpc_block
   instance_tenancy = "default"
   enable_dns_hostnames = "true"
   tags = {
@@ -13,8 +21,8 @@ resource "aws_vpc" "primary-vpc" {
 
 resource "aws_subnet" "private-subnet" {
   vpc_id            = aws_vpc.primary-vpc.id
-  cidr_block        = "172.32.1.0/24"
-  availability_zone = "us-east-2a"
+  cidr_block        = var.private_subnet_block
+  availability_zone = var.avail_zone1
 
   tags = {
     Name = "private-subnet"
@@ -23,8 +31,8 @@ resource "aws_subnet" "private-subnet" {
 
 resource "aws_subnet" "public-subnet" {
   vpc_id            = aws_vpc.primary-vpc.id
-  cidr_block        = "172.32.2.0/24"
-  availability_zone = "us-east-2b"
+  cidr_block        = var.public_subnet_block
+  availability_zone = var.avail_zone2
   map_public_ip_on_launch = true
 
   tags = {
@@ -34,8 +42,8 @@ resource "aws_subnet" "public-subnet" {
 
 resource "aws_subnet" "public-subnet-nlb" {
   vpc_id            = aws_vpc.primary-vpc.id
-  cidr_block        = "172.32.3.0/24"
-  availability_zone = "us-east-2a"
+  cidr_block        = var.public_subnet_nlb_block
+  availability_zone = var.avail_zone1
   map_public_ip_on_launch = true
 
   tags = {
@@ -45,8 +53,8 @@ resource "aws_subnet" "public-subnet-nlb" {
 
 resource "aws_subnet" "public-subnet-nlb2" {
   vpc_id            = aws_vpc.primary-vpc.id
-  cidr_block        = "172.32.4.0/24"
-  availability_zone = "us-east-2b"
+  cidr_block        = var.public_subnet_nlb2_block
+  availability_zone = var.avail_zone2
   map_public_ip_on_launch = true
 
   tags = {
@@ -126,7 +134,7 @@ resource "aws_security_group" "security-group-nat" {
     from_port   = -1  
     to_port     = -1
     protocol    = "icmp"
-    cidr_blocks = ["172.0.0.0/8"]  
+    cidr_blocks = [var.secondary_vpc_block,var.primary_vpc_block,var.public_subnet_nlb_block,var.public_subnet_nlb2_block]  
   }
 
   ingress {
@@ -134,7 +142,7 @@ resource "aws_security_group" "security-group-nat" {
     from_port        = 22
     to_port          = 22
     protocol         = "tcp"
-    cidr_blocks      = ["172.16.0.0/16"]
+    cidr_blocks      = [var.secondary_vpc_block]
   }
 
   ingress {
@@ -142,7 +150,7 @@ resource "aws_security_group" "security-group-nat" {
     from_port        = 80
     to_port          = 80
     protocol         = "tcp"
-    cidr_blocks      = ["172.32.3.0/24","172.32.4.0/24"]
+    cidr_blocks      = [var.public_subnet_nlb_block,var.public_subnet_nlb2_block]
   }
 
   ingress {
@@ -150,7 +158,7 @@ resource "aws_security_group" "security-group-nat" {
     from_port        = 443
     to_port          = 443
     protocol         = "tcp"
-    cidr_blocks      = ["172.32.3.0/24","172.32.4.0/24"]
+    cidr_blocks      = [var.public_subnet_nlb_block,var.public_subnet_nlb2_block]
   }
 
   egress {
